@@ -1,0 +1,15 @@
+name: "Publish"
+description: "Publishes artifacts to GitHub Releases and sends notifications"
+inputs:
+  repository:
+    description: "Target repository"
+    required: true
+  path:
+    description: "Path to artifacts"
+    required: true
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  args:
+    - ${{ inputs.repository }}
+    - ${{ inputs.path }}
