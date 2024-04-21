@@ -191,7 +191,6 @@ class GitHubReleaseManager:
         Returns:
         - list of str: Browser download URLs for the uploaded assets.
         """
-
         download_urls = []
         upload_url = self.get_upload_url()
 

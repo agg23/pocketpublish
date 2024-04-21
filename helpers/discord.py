@@ -172,7 +172,7 @@ def send_discord_announcement(config, files):
     webhook_env_vars = {key: value for key, value in os.environ.items() if key.startswith(prefix)}
     # Dispatch message
     for server, webhook in webhook_env_vars.items():
-        if webhook:
+        if webhook is not None:
             print(f"Sending announcement to {server.removeprefix(prefix).lower()}...")
             response = requests.post(webhook, headers=headers, data=json.dumps(data))
             if response.status_code != 204:
