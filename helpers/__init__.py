@@ -34,7 +34,6 @@ from .release import *
 from .discord import *
 from .package import *
 from .json import *
-from .quartus import *
 
 __all__ = [
     # JSON Helpers
@@ -42,8 +41,6 @@ __all__ = [
     "save_json_file",
     "read_gateware_json",
     "update_apf_core_json",
-    # Quartus
-    "run_quartus_compile",
     # Package
     "create_folders",
     "copy_packaging_folder",

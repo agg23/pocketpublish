@@ -36,8 +36,6 @@ def main():
     print("Starting")
     # Load gateware.json file
     config = read_gateware_json()
-    # Compile design
-    # run_quartus_compile(config)
     # Create base folders
     create_folders(config)
     # Copy package folders and files
