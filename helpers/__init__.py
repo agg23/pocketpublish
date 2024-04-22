@@ -29,7 +29,6 @@
 ********************************************************************************
 """
 
-from .GitHubReleaseManager import *
 from .release import *
 from .discord import *
 from .package import *
@@ -55,7 +54,6 @@ __all__ = [
     "reverse_bitstream",
     # Release
     "create_gh_release",
-    "GitHubReleaseManager",
     # Discord
     "send_discord_announcement",
 ]

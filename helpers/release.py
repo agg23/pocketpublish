@@ -46,6 +46,18 @@ def get_current_git_branch():
 
 
 def release_exists(repo, token, tag_name):
+    """
+     Checks if a release with the specified tag name exists.
+
+     Parameters:
+     - tag_name (str): The tag name of the release to check.
+
+     Returns:
+     - tuple: (bool, dict) - True if release exists along with the release info, False and empty dict otherwise.
+
+     Throws:
+     - Exception: If there's an issue querying the GitHub API.
+     """
     gh_url = os.getenv("GITHUB_API_URL")
     url = f"{gh_url}/repos/{repo}/releases"
     headers = {
@@ -64,6 +76,18 @@ def release_exists(repo, token, tag_name):
 
 
 def create_release(repo, token, tag_name):
+    """
+    Creates a new release on GitHub.
+
+    Parameters:
+    - tag_name (str): The tag name for the new release.
+
+    Returns:
+    - dict: The response from GitHub API for the newly created release.
+
+    Throws:
+    - Exception: If there's an error creating the release via the GitHub API.
+    """
     gh_url = os.getenv("GITHUB_API_URL")
     url = f"{gh_url}/repos/{repo}/releases"
     headers = {
@@ -85,6 +109,12 @@ def create_release(repo, token, tag_name):
 
 
 def get_upload_url(repo, token, tag_name):
+    """
+    Retrieves the upload URL for a release's assets.
+
+    Returns:
+    - str: The upload URL for the release's assets.
+    """
     # Check if a release already exists
     exists, response = release_exists(repo, token, tag_name)
     if exists:
@@ -98,6 +128,20 @@ def get_upload_url(repo, token, tag_name):
 
 
 def upload_asset(upload_url, token, file_path, content_type):
+    """
+    Uploads an asset to a given release.
+
+    Parameters:
+    - upload_url (str): The URL for uploading assets to the release.
+    - file_path (str): The local path to the file to be uploaded.
+    - content_type (str): The MIME type of the file being uploaded.
+
+    Returns:
+    - dict: The response from GitHub API for the uploaded asset.
+
+    Throws:
+    - Exception: If there's an error uploading the asset via the GitHub API.
+    """
     headers = {
         "Authorization": f"token {token}",
         "Content-Type": content_type
@@ -111,6 +155,16 @@ def upload_asset(upload_url, token, file_path, content_type):
 
 
 def create_gh_release(config, files):
+    """
+    Creates a GitHub release and uploads specified files as assets.
+
+    Parameters:
+    - config (dict): Configuration details for the release, including the release folder path.
+    - files (list of str): Filenames of the assets to be uploaded.
+
+    Returns:
+    - list of str: Browser download URLs for the uploaded assets.
+    """
     content_type = 'application/octet-stream'
     release_folder = config['release']['folders']['release_folder']
     download_urls = []
