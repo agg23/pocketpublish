@@ -170,12 +170,16 @@ def send_discord_announcement(config, files):
     # Find all environment variables that start with the prefix "WEBHOOK_"
     prefix = "WEBHOOK_"
     webhook_env_vars = {key: value for key, value in os.environ.items() if key.startswith(prefix)}
+
     # Dispatch message
     for server, webhook in webhook_env_vars.items():
-        if webhook is not None:
-            print(f"Sending announcement to {server.removeprefix(prefix).lower()}...")
-            response = requests.post(webhook, headers=headers, data=json.dumps(data))
-            if response.status_code != 204:
-                raise Exception(f"Error sending Discord notification: {response.content}")
+        if webhook:
+            try:
+                print(f"Sending announcement to {server.removeprefix(prefix).lower()}...")
+                response = requests.post(webhook, headers=headers, data=json.dumps(data))
+                if response.status_code != 204:
+                    print(f"Error sending Discord notification: {response.content}")
+            except requests.exceptions.RequestException as e:  # This will catch any URL errors among others
+                print(f"Failed to send message due to an error: {e}")
         else:
-            print(f"No webhook detected")
+            print(f"No valid webhook detected for {server.removeprefix(prefix).lower()}")

@@ -28,12 +28,15 @@
 * SOFTWARE.
 ********************************************************************************
 """
+import sys
 
 from .release import *
 from .discord import *
 from .package import *
 from .json import *
 from .quartus import *
+
+sys.tracebacklimit = 0
 
 __all__ = [
     # JSON Helpers
