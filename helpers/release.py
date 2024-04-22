@@ -72,7 +72,6 @@ def create_release(repo, token, tag_name):
     }
     payload = {
         "tag_name": tag_name,
-        "target_commitish": get_current_git_branch(),
         "name": f"Release v{tag_name}",
         "body": f"Release v{tag_name}",
         "draft": False,

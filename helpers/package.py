@@ -226,7 +226,7 @@ def create_metadata_package(config):
         ).lower()
 
         create_zip_file(meta_folder, os.path.join(release_folder, f"{meta_file}.zip"))
-        create_tar_gz(meta_folder, os.path.join(release_folder, f"{meta_file}.tar.gz"))
+        # create_tar_gz(meta_folder, os.path.join(release_folder, f"{meta_file}.tar.gz"))
         return f"{meta_file}.zip"
     else:
         print("No information found for the metadata file")
