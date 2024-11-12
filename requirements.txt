@@ -1,2 +1,2 @@
-requests~=2.31.0
-python-on-whales~=0.69.0
+requests~=2.32.3
+python-on-whales~=0.73.0
