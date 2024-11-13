@@ -229,7 +229,8 @@ def create_metadata_package(config):
         # create_tar_gz(meta_folder, os.path.join(release_folder, f"{meta_file}.tar.gz"))
         return f"{meta_file}.zip"
     else:
-        print("No information found for the metadata file")
+        print("No metadata file configuration found. Skipping metadata package creation.")
+        return None
 
 
 def reverse_bitstream(config):

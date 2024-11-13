@@ -124,11 +124,21 @@ def send_discord_announcement(config, files):
 
     Side Effects:
     - Sends a POST request to each Discord webhook URL found in environment variables.
-    
+
     Raises:
     - Exception: If any Discord webhook POST request fails.
     """
-    print("Sending Discord Announcements...")
+    print("Preparing to send Discord Announcements...")
+
+    # Filter out invalid or empty URLs from the files list
+    valid_files = [url for url in files if url and isinstance(url, str)]
+
+    # If no valid download URLs, skip sending the announcement
+    if not valid_files:
+        print("No valid download URLs found. Skipping Discord announcement.")
+        return
+
+    # Prepare the announcement content
     repo = f'{os.getenv("GITHUB_REPOSITORY")}'
     version = f'{os.getenv("GITHUB_REF_NAME")}'
     platform = get_platform_name(f'{os.getenv("TARGET")}')
@@ -142,7 +152,7 @@ def send_discord_announcement(config, files):
     image = f"https://github.com/{repo}/raw/master/{config['release']['image']}"
     links = (f"- [Repository](https://github.com/{repo}/)\n"
              f"- [Release](https://github.com/{repo}/releases/tag/{version})")
-    download = format_download_links(files)
+    download = format_download_links(valid_files)
 
     headers = {
         "Content-Type": "application/json"
@@ -171,7 +181,7 @@ def send_discord_announcement(config, files):
     prefix = "WEBHOOK_"
     webhook_env_vars = {key: value for key, value in os.environ.items() if key.startswith(prefix)}
 
-    # Dispatch message
+    # Dispatch message to each webhook
     for server, webhook in webhook_env_vars.items():
         if webhook:
             try:
@@ -179,7 +189,9 @@ def send_discord_announcement(config, files):
                 response = requests.post(webhook, headers=headers, data=json.dumps(data))
                 if response.status_code != 204:
                     print(f"Error sending Discord notification: {response.content}")
-            except requests.exceptions.RequestException as e:  # This will catch any URL errors among others
+                else:
+                    print(f"Announcement sent successfully to {server.removeprefix(prefix).lower()}.")
+            except requests.exceptions.RequestException as e:
                 print(f"Failed to send message due to an error: {e}")
         else:
             print(f"No valid webhook detected for {server.removeprefix(prefix).lower()}")

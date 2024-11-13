@@ -169,13 +169,20 @@ def create_gh_release(config, files):
     release_folder = config['release']['folders']['release_folder']
     download_urls = []
 
+    # Filter out None values from the files list
+    valid_files = [f for f in files if f is not None]
+
+    if not valid_files:
+        print("No valid files to upload. Skipping GitHub release.")
+        return download_urls
+
     upload_url = get_upload_url(
             f'{os.getenv("GITHUB_REPOSITORY")}',
             f'{os.getenv("GH_TOKEN")}',
             f'{os.getenv("GITHUB_REF_NAME")}'
     )
 
-    for release_file in files:
+    for release_file in valid_files:
         asset_upload_url = upload_url.replace("{?name,label}", f"?name={release_file}")
         file_path = f'{release_folder}/{release_file}'
         asset_info = upload_asset(
