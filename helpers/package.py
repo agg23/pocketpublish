@@ -235,7 +235,7 @@ def create_metadata_package(config):
         return None
 
 
-def reverse_bitstream(config):
+def reverse_bitstream(source, destination):
     """
     Reverses the bitstream of an RBF file specified in the configuration.
 
@@ -246,12 +246,12 @@ def reverse_bitstream(config):
     - Generates a new RBF file with reversed bitstream.
     """
     print("Reversing Bitstream...")
-    target = os.getenv('TARGET')
-    source_rbf_file = f"{config['release']['folders']['output_folder']}/{config['name']}_{target}.rbf"
-    reverse_rbf_file = f"{config['release']['folders']['stage_folder']}/Cores/{config['author']}.{config['name']}/bitstream.rbf_r"
+    # target = os.getenv('TARGET')
+    # source_rbf_file = f"{config['release']['folders']['output_folder']}/{config['name']}_{target}.rbf"
+    # reverse_rbf_file = f"{config['release']['folders']['stage_folder']}/Cores/{config['author']}.{config['name']}/bitstream.rbf_r"
     try:
         # Read the input file
-        with open(source_rbf_file, 'rb') as file:
+        with open(source, 'rb') as file:
             byte_array = bytearray(file.read())
 
         # Reverse the bits in each byte
@@ -262,10 +262,10 @@ def reverse_bitstream(config):
                             ((byte_array[i] & 0x40) >> 5) | ((byte_array[i] & 0x80) >> 7)
 
         # Write the reversed bytes to the output file
-        with open(reverse_rbf_file, 'wb') as file:
+        with open(destination, 'wb') as file:
             file.write(byte_array)
 
-        print(f"Reversed {len(byte_array)} bytes and saved to {reverse_rbf_file}")
+        print(f"Reversed {len(byte_array)} bytes and saved to {destination}")
 
     except IOError as e:
         print(f"An error occurred: {e}")
