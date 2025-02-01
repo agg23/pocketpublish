@@ -98,7 +98,7 @@ def create_release(repo, token, tag_name):
         "tag_name": tag_name,
         "name": f"Release v{tag_name}",
         "body": f"Release v{tag_name}",
-        "draft": False,
+        "draft": True,
         "prerelease": False
     }
     response = requests.post(url, headers=headers, data=json.dumps(payload))

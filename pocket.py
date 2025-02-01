@@ -54,7 +54,7 @@ def main():
     # Create GitHub release
     release_urls = create_gh_release(config, [pkg_file, meta_file])
     # Send Discord announcement
-    send_discord_announcement(config, release_urls)
+    # send_discord_announcement(config, release_urls)
 
 
 if __name__ == '__main__':

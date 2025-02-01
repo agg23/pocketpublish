@@ -61,7 +61,7 @@ def create_folders(config):
         print(f"An error occurred: {e}")
 
 
-def copy_packaging_folder(config):
+def copy_packaging_folder(config, subpath=None):
     """
     Copies the packaging folder structure to the staging area.
 
@@ -73,11 +73,13 @@ def copy_packaging_folder(config):
     """
     target = os.getenv('TARGET')
     folders = config['release']['folders']
-    source = f"{folders['pkg_folder']}/{target}"
+    source = f"{folders['pkg_folder']}"
+    if subpath != None:
+        source = os.path.join(source, subpath)
     destination = folders['stage_folder']
 
     print("Copying Package Files...")
-    print(source, destination)
+    print("From:", source, "To:", destination)
     if not os.path.exists(destination):
         os.makedirs(destination)
 
