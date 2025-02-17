@@ -71,7 +71,7 @@ def copy_packaging_folder(config, subpath=None):
     Side effects:
     - Copies files and directories from the package folder to the staging folder.
     """
-    target = os.getenv('TARGET')
+    # target = os.getenv('TARGET')
     folders = config['release']['folders']
     source = f"{folders['pkg_folder']}"
     if subpath != None:
@@ -168,7 +168,7 @@ def create_zip_file(source_dir, output_filename):
         print(f"An error occurred while creating the archive: {e}")
 
 
-def create_release_package(config):
+def create_release_package(config, target):
     """
     Creates a release package as a zip file based on configuration and target environment.
 
@@ -179,7 +179,6 @@ def create_release_package(config):
     - str: The filename of the created release package.
     """
     print("Creating release package...")
-    target = os.getenv('TARGET')
     current_date = date.today().strftime("%Y%m%d")
     version = os.getenv('GITHUB_REF').split('/')[-1]
     release_folder = config['release']['folders']['release_folder']
@@ -202,7 +201,7 @@ def create_release_package(config):
         print("No information found for the release file")
 
 
-def create_metadata_package(config):
+def create_metadata_package(config, target):
     """
     Creates a metadata package as a zip file based on configuration and target environment.
 
@@ -213,7 +212,6 @@ def create_metadata_package(config):
     - str: The filename of the created metadata package.
     """
     print("Creating metadata package...")
-    target = os.getenv('TARGET')
     current_date = date.today().strftime("%Y%m%d")
     version = os.getenv('GITHUB_REF').split('/')[-1]
     release_folder = config['release']['folders']['release_folder']
