@@ -178,7 +178,7 @@ def create_gh_release(config, files):
 
     upload_url = get_upload_url(
             f'{os.getenv("GITHUB_REPOSITORY")}',
-            f'{os.getenv("GH_TOKEN")}',
+            f'{os.getenv("GITHUB_TOKEN")}',
             f'{os.getenv("GITHUB_REF_NAME")}'
     )
 
@@ -187,7 +187,7 @@ def create_gh_release(config, files):
         file_path = f'{release_folder}/{release_file}'
         asset_info = upload_asset(
                 asset_upload_url,
-                f'{os.getenv("GH_TOKEN")}',
+                f'{os.getenv("GITHUB_TOKEN")}',
                 file_path,
                 content_type
         )
