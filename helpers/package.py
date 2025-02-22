@@ -47,9 +47,9 @@ def create_folders(config):
     - Removes existing stage and release folders if they exist.
     - Creates new stage and release folders.
     """
-    folders = config['release']['folders']
-    stage_folder = folders['stage_folder']
-    release_folder = folders['release_folder']
+    folders = config["release"]["folders"]
+    stage_folder = folders["stage_folder"]
+    release_folder = folders["release_folder"]
     try:
         shutil.rmtree(stage_folder, ignore_errors=True)
         os.makedirs(stage_folder)
@@ -72,11 +72,11 @@ def copy_packaging_folder(config, subpath=None):
     - Copies files and directories from the package folder to the staging folder.
     """
     # target = os.getenv('TARGET')
-    folders = config['release']['folders']
+    folders = config["release"]["folders"]
     source = f"{folders['pkg_folder']}"
     if subpath != None:
         source = os.path.join(source, subpath)
-    destination = folders['stage_folder']
+    destination = folders["stage_folder"]
 
     print("Copying Package Files...")
     print("From:", source, "To:", destination)
@@ -106,8 +106,8 @@ def clean_up_files(config):
     Side effects:
     - Deletes files matching specified patterns (e.g., "*.png", "*.rom", "*.gitkeep").
     """
-    folders = config['release']['folders']
-    stage_folder = folders['stage_folder']
+    folders = config["release"]["folders"]
+    stage_folder = folders["stage_folder"]
 
     print("Cleaning Up Files...")
     # Define patterns for unwanted files
@@ -115,7 +115,9 @@ def clean_up_files(config):
 
     for pattern in file_patterns:
         # Use glob to find all files matching the pattern
-        for filename in glob.glob(os.path.join(stage_folder, "**", pattern), recursive=True):
+        for filename in glob.glob(
+            os.path.join(stage_folder, "**", pattern), recursive=True
+        ):
             print(f"Removing {filename}...")
             os.remove(filename)
 
@@ -154,14 +156,21 @@ def create_zip_file(source_dir, output_filename):
     """
     print(f"Packing contents of {source_dir} into {output_filename}...")
     try:
-        with zipfile.ZipFile(output_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        with zipfile.ZipFile(output_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
             # Walk through everything inside source_dir
             for root, dirs, files in os.walk(source_dir):
+                if len(files) < 1:
+                    # Write empty folder
+                    print(f"Ziping empty folder {root}")
+                    zipf.write(str(root), "")
+                    continue
+
                 for file in files:
                     # Full path to the file
                     file_path = os.path.join(root, file)
                     # Relative path to the file inside source_dir
                     arcname = os.path.relpath(str(file_path), start=source_dir)
+                    print(f"Zipping file {file_path}")
                     zipf.write(str(file_path), str(arcname))
         print(f"Archive {output_filename} created successfully.")
     except Exception as e:
@@ -180,20 +189,26 @@ def create_release_package(config, target):
     """
     print("Creating release package...")
     current_date = date.today().strftime("%Y%m%d")
-    version = os.getenv('GITHUB_REF').split('/')[-1]
-    release_folder = config['release']['folders']['release_folder']
+    version = os.getenv("GITHUB_REF").split("/")[-1]
+    release_folder = config["release"]["folders"]["release_folder"]
 
-    if 'release_file' in config['release']['target'][target]:
-        stage_folder = config['release']['folders']['stage_folder']
-        release_file = config['release']['target'][target]['release_file'].format(
+    if "release_file" in config["release"]["target"][target]:
+        stage_folder = config["release"]["folders"]["stage_folder"]
+        release_file = (
+            config["release"]["target"][target]["release_file"]
+            .format(
                 author=f"{config['author']}",
                 core=f"{config['name']}",
                 version=f"{version}",
                 date=f"{current_date}",
-                target=f"{target}"
-        ).lower()
+                target=f"{target}",
+            )
+            .lower()
+        )
 
-        create_zip_file(stage_folder, os.path.join(release_folder, f"{release_file}.zip"))
+        create_zip_file(
+            stage_folder, os.path.join(release_folder, f"{release_file}.zip")
+        )
         # create_tar_gz(stage_folder, os.path.join(release_folder, f"{release_file}.tar.gz"))
 
         return f"{release_file}.zip"
@@ -213,23 +228,29 @@ def create_metadata_package(config, target):
     """
     print("Creating metadata package...")
     current_date = date.today().strftime("%Y%m%d")
-    version = os.getenv('GITHUB_REF').split('/')[-1]
-    release_folder = config['release']['folders']['release_folder']
+    version = os.getenv("GITHUB_REF").split("/")[-1]
+    release_folder = config["release"]["folders"]["release_folder"]
 
-    if 'metadata_file' in config['release']['target'][target]:
-        meta_folder = config['release']['folders']['meta_folder']
-        meta_file = config['release']['target'][target]['metadata_file'].format(
+    if "metadata_file" in config["release"]["target"][target]:
+        meta_folder = config["release"]["folders"]["meta_folder"]
+        meta_file = (
+            config["release"]["target"][target]["metadata_file"]
+            .format(
                 author=f"{config['author']}",
                 core=f"{config['name']}",
                 version=f"{version}",
-                date=f"{current_date}"
-        ).lower()
+                date=f"{current_date}",
+            )
+            .lower()
+        )
 
         create_zip_file(meta_folder, os.path.join(release_folder, f"{meta_file}.zip"))
         # create_tar_gz(meta_folder, os.path.join(release_folder, f"{meta_file}.tar.gz"))
         return f"{meta_file}.zip"
     else:
-        print("No metadata file configuration found. Skipping metadata package creation.")
+        print(
+            "No metadata file configuration found. Skipping metadata package creation."
+        )
         return None
 
 
@@ -249,18 +270,24 @@ def reverse_bitstream(source, destination):
     # reverse_rbf_file = f"{config['release']['folders']['stage_folder']}/Cores/{config['author']}.{config['name']}/bitstream.rbf_r"
     try:
         # Read the input file
-        with open(source, 'rb') as file:
+        with open(source, "rb") as file:
             byte_array = bytearray(file.read())
 
         # Reverse the bits in each byte
         for i in range(len(byte_array)):
-            byte_array[i] = ((byte_array[i] & 0x01) << 7) | ((byte_array[i] & 0x02) << 5) | \
-                            ((byte_array[i] & 0x04) << 3) | ((byte_array[i] & 0x08) << 1) | \
-                            ((byte_array[i] & 0x10) >> 1) | ((byte_array[i] & 0x20) >> 3) | \
-                            ((byte_array[i] & 0x40) >> 5) | ((byte_array[i] & 0x80) >> 7)
+            byte_array[i] = (
+                ((byte_array[i] & 0x01) << 7)
+                | ((byte_array[i] & 0x02) << 5)
+                | ((byte_array[i] & 0x04) << 3)
+                | ((byte_array[i] & 0x08) << 1)
+                | ((byte_array[i] & 0x10) >> 1)
+                | ((byte_array[i] & 0x20) >> 3)
+                | ((byte_array[i] & 0x40) >> 5)
+                | ((byte_array[i] & 0x80) >> 7)
+            )
 
         # Write the reversed bytes to the output file
-        with open(destination, 'wb') as file:
+        with open(destination, "wb") as file:
             file.write(byte_array)
 
         print(f"Reversed {len(byte_array)} bytes and saved to {destination}")
