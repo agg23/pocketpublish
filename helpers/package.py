@@ -111,7 +111,7 @@ def clean_up_files(config):
 
     print("Cleaning Up Files...")
     # Define patterns for unwanted files
-    file_patterns = ["*.png", "*.rom", "*.gitkeep"]
+    file_patterns = ["*.png", "*.rom", ".gitkeep"]
 
     for pattern in file_patterns:
         # Use glob to find all files matching the pattern
