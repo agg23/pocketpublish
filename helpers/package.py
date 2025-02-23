@@ -161,10 +161,11 @@ def create_zip_file(source_dir, output_filename):
             for root, dirs, files in os.walk(source_dir):
                 if not files and not dirs:
                     # Write empty folder
-                    folder = str(root) + "/"
-                    # arcname = os.path.relpath(str(root), start=source_dir)
-                    print(f"Ziping empty folder {folder}")
-                    zipf.write(folder, b"")
+                    arcname = os.path.relpath(str(root), start=source_dir)
+                    print(f"Ziping empty folder {root} as {arcname}")
+                    zip_info = zipfile.ZipInfo(arcname)
+                    zip_info.external_attr = 0o40755 << 16  # drwxr-xr-x permissions
+                    zipf.writestr(str(arcname) + "/", b"")
                     continue
 
                 for file in files:
