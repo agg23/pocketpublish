@@ -161,9 +161,10 @@ def create_zip_file(source_dir, output_filename):
             for root, dirs, files in os.walk(source_dir):
                 if not files and not dirs:
                     # Write empty folder
-                    arcname = os.path.relpath(str(root), start=source_dir)
-                    print(f"Ziping empty folder {root} as {arcname}")
-                    zipf.write(str(arcname), b"")
+                    folder = str(root) + "/"
+                    # arcname = os.path.relpath(str(root), start=source_dir)
+                    print(f"Ziping empty folder {folder}")
+                    zipf.write(folder, b"")
                     continue
 
                 for file in files:
@@ -171,7 +172,7 @@ def create_zip_file(source_dir, output_filename):
                     file_path = os.path.join(root, file)
                     # Relative path to the file inside source_dir
                     arcname = os.path.relpath(str(file_path), start=source_dir)
-                    print(f"Zipping file {file_path}")
+                    print(f"Zipping file {file_path} as {arcname}")
                     zipf.write(str(file_path), str(arcname))
         print(f"Archive {output_filename} created successfully.")
     except Exception as e:
