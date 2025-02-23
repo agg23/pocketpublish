@@ -159,10 +159,11 @@ def create_zip_file(source_dir, output_filename):
         with zipfile.ZipFile(output_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
             # Walk through everything inside source_dir
             for root, dirs, files in os.walk(source_dir):
-                if len(files) < 1:
+                if not files and not dirs:
                     # Write empty folder
-                    print(f"Ziping empty folder {root}")
-                    zipf.write(str(root), "")
+                    arcname = os.path.relpath(str(root), start=source_dir)
+                    print(f"Ziping empty folder {root} as {arcname}")
+                    zipf.write(str(arcname), b"")
                     continue
 
                 for file in files:
