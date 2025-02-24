@@ -191,22 +191,18 @@ def create_release_package(config, target):
     - str: The filename of the created release package.
     """
     print("Creating release package...")
-    current_date = date.today().strftime("%Y%m%d")
+    current_date = date.today().strftime("%Y-%m-%d")
     version = os.getenv("GITHUB_REF").split("/")[-1]
     release_folder = config["release"]["folders"]["release_folder"]
 
     if "release_file" in config["release"]["target"][target]:
         stage_folder = config["release"]["folders"]["stage_folder"]
-        release_file = (
-            config["release"]["target"][target]["release_file"]
-            .format(
-                author=f"{config['author']}",
-                core=f"{config['name']}",
-                version=f"{version}",
-                date=f"{current_date}",
-                target=f"{target}",
-            )
-            .lower()
+        release_file = config["release"]["target"][target]["release_file"].format(
+            author=f"{config['author']}",
+            core=f"{config['name']}",
+            version=f"{version}",
+            date=f"{current_date}",
+            target=f"{target}",
         )
 
         create_zip_file(
