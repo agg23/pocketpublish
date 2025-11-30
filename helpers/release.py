@@ -113,28 +113,87 @@ def get_upload_url(repo, token, tag_name):
     Retrieves the upload URL for a release's assets.
 
     Returns:
-    - str: The upload URL for the release's assets.
+    - tuple: (str, int) - The upload URL for the release's assets and the release ID.
     """
     # Check if a release already exists
     exists, response = release_exists(repo, token, tag_name)
     if exists:
         print("Release Already Exists...")
-        return response['upload_url']
+        return response['upload_url'], response['id']
     else:
         print("Creating New Release...")
         release = create_release(repo, token, tag_name)
-        return release['upload_url']
-    pass
+        return release['upload_url'], release['id']
 
 
-def upload_asset(upload_url, token, file_path, content_type):
+def get_release_assets(repo, token, release_id):
+    """
+    Gets all assets for a given release.
+
+    Parameters:
+    - repo (str): The repository in format "owner/repo".
+    - token (str): GitHub authentication token.
+    - release_id (int): The ID of the release.
+
+    Returns:
+    - list: List of asset dictionaries.
+
+    Throws:
+    - Exception: If there's an error fetching assets via the GitHub API.
+    """
+    gh_url = os.getenv("GITHUB_API_URL")
+    url = f"{gh_url}/repos/{repo}/releases/{release_id}/assets"
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise Exception(f"Error fetching assets: {response.content}")
+
+
+def delete_asset(repo, token, asset_id):
+    """
+    Deletes an asset from a release.
+
+    Parameters:
+    - repo (str): The repository in format "owner/repo".
+    - token (str): GitHub authentication token.
+    - asset_id (int): The ID of the asset to delete.
+
+    Returns:
+    - bool: True if deletion was successful.
+
+    Throws:
+    - Exception: If there's an error deleting the asset via the GitHub API.
+    """
+    gh_url = os.getenv("GITHUB_API_URL")
+    url = f"{gh_url}/repos/{repo}/releases/assets/{asset_id}"
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    response = requests.delete(url, headers=headers)
+    if response.status_code == 204:
+        return True
+    else:
+        raise Exception(f"Error deleting asset: {response.content}")
+
+
+def upload_asset(upload_url, token, file_path, content_type, repo, release_id, asset_name):
     """
     Uploads an asset to a given release.
 
     Parameters:
     - upload_url (str): The URL for uploading assets to the release.
+    - token (str): GitHub authentication token.
     - file_path (str): The local path to the file to be uploaded.
     - content_type (str): The MIME type of the file being uploaded.
+    - repo (str): The repository in format "owner/repo".
+    - release_id (int): The release ID.
+    - asset_name (str): The name of the asset.
 
     Returns:
     - dict: The response from GitHub API for the uploaded asset.
@@ -150,6 +209,26 @@ def upload_asset(upload_url, token, file_path, content_type):
         response = requests.post(upload_url, headers=headers, data=file)
         if response.status_code == 201:
             return response.json()
+        elif response.status_code == 422:
+            print(f"Asset '{asset_name}' already exists. Attempting to delete and re-upload...")
+            try:
+                assets = get_release_assets(repo, token, release_id)
+                for asset in assets:
+                    if asset['name'] != asset_name:
+                        continue
+                    print(f"Deleting asset with ID {asset['id']}")
+                    delete_asset(repo, token, asset['id'])
+                    print(f"Deleted asset '{asset_name}'. Re-uploading...")
+                    file.seek(0)
+                    retry_response = requests.post(upload_url, headers=headers, data=file)
+                    if retry_response.status_code == 201:
+                        print(f"Successfully re-uploaded asset '{asset_name}'.")
+                        return retry_response.json()
+                    else:
+                        raise Exception(f"Error re-uploading asset after deletion: {retry_response.content}")
+                raise Exception(f"Asset '{asset_name}' not found in release assets, but upload failed with 422")
+            except Exception as e:
+                raise Exception(f"Error handling duplicate asset: {str(e)}")
         else:
             raise Exception(f"Error uploading asset: {response.content}")
 
@@ -176,20 +255,23 @@ def create_gh_release(config, files):
         print("No valid files to upload. Skipping GitHub release.")
         return download_urls
 
-    upload_url = get_upload_url(
-            f'{os.getenv("GITHUB_REPOSITORY")}',
-            f'{os.getenv("GITHUB_TOKEN")}',
-            f'{os.getenv("GITHUB_REF_NAME")}'
-    )
+    repo = os.getenv("GITHUB_REPOSITORY")
+    token = os.getenv("GITHUB_TOKEN")
+    tag_name = os.getenv("GITHUB_REF_NAME")
+    
+    upload_url, release_id = get_upload_url(repo, token, tag_name)
 
     for release_file in valid_files:
         asset_upload_url = upload_url.replace("{?name,label}", f"?name={release_file}")
         file_path = f'{release_folder}/{release_file}'
         asset_info = upload_asset(
                 asset_upload_url,
-                f'{os.getenv("GITHUB_TOKEN")}',
+                token,
                 file_path,
-                content_type
+                content_type,
+                repo=repo,
+                release_id=release_id,
+                asset_name=release_file
         )
         if 'browser_download_url' in asset_info:
             download_urls.append(asset_info['browser_download_url'])
