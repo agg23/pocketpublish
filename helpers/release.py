@@ -111,6 +111,7 @@ def create_release(repo, token, tag_name):
 def get_upload_url(repo, token, tag_name):
     """
     Retrieves the upload URL for a release's assets.
+    If the release already exists, deletes all existing assets before returning.
 
     Returns:
     - tuple: (str, int) - The upload URL for the release's assets and the release ID.
@@ -119,7 +120,20 @@ def get_upload_url(repo, token, tag_name):
     exists, response = release_exists(repo, token, tag_name)
     if exists:
         print("Release Already Exists...")
-        return response['upload_url'], response['id']
+        release_id = response['id']
+        try:
+            assets = get_release_assets(repo, token, release_id)
+            if assets:
+                print(f"Deleting {len(assets)} existing asset(s)")
+                for asset in assets:
+                    print(f"  Deleting asset '{asset['name']}' ({asset['id']})")
+                    delete_asset(repo, token, asset['id'])
+                print("Deleted all assets")
+            else:
+                print("No existing assets to delete.")
+        except Exception as e:
+            print(f"Error while deleting existing assets: {str(e)}")
+        return response['upload_url'], release_id
     else:
         print("Creating New Release...")
         release = create_release(repo, token, tag_name)
@@ -209,26 +223,6 @@ def upload_asset(upload_url, token, file_path, content_type, repo, release_id, a
         response = requests.post(upload_url, headers=headers, data=file)
         if response.status_code == 201:
             return response.json()
-        elif response.status_code == 422:
-            print(f"Asset '{asset_name}' already exists. Attempting to delete and re-upload...")
-            try:
-                assets = get_release_assets(repo, token, release_id)
-                for asset in assets:
-                    if asset['name'] != asset_name:
-                        continue
-                    print(f"Deleting asset with ID {asset['id']}")
-                    delete_asset(repo, token, asset['id'])
-                    print(f"Deleted asset '{asset_name}'. Re-uploading...")
-                    file.seek(0)
-                    retry_response = requests.post(upload_url, headers=headers, data=file)
-                    if retry_response.status_code == 201:
-                        print(f"Successfully re-uploaded asset '{asset_name}'.")
-                        return retry_response.json()
-                    else:
-                        raise Exception(f"Error re-uploading asset after deletion: {retry_response.content}")
-                raise Exception(f"Asset '{asset_name}' not found in release assets, but upload failed with 422")
-            except Exception as e:
-                raise Exception(f"Error handling duplicate asset: {str(e)}")
         else:
             raise Exception(f"Error uploading asset: {response.content}")
 
