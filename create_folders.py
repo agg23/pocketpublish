@@ -1,9 +1,20 @@
 #!/usr/bin/env python3
 
+"""Create local directories to prepare for creating a release.
+
+This assumes it's running in a GitHub action with various GITHUB_* env vars.
+"""
+
+import argparse
+import sys
+
 from helpers import *
 
 
-def main():
+def main(argv: list[str]) -> int | None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    _opts = parser.parse_args(argv)
+
     print("Starting")
     # Load gateware.json file
     config = read_gateware_json()
@@ -20,4 +31,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main(sys.argv[1:]))
