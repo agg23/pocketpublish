@@ -267,29 +267,18 @@ def reverse_bitstream(source, destination):
     # target = os.getenv('TARGET')
     # source_rbf_file = f"{config['release']['folders']['output_folder']}/{config['name']}_{target}.rbf"
     # reverse_rbf_file = f"{config['release']['folders']['stage_folder']}/Cores/{config['author']}.{config['name']}/bitstream.rbf_r"
+    # Reverse the bits in each byte
+    table = bytes(int(f"{i:08b}"[::-1], 2) for i in range(256))
     try:
         # Read the input file
         with open(source, "rb") as file:
-            byte_array = bytearray(file.read())
-
-        # Reverse the bits in each byte
-        for i in range(len(byte_array)):
-            byte_array[i] = (
-                ((byte_array[i] & 0x01) << 7)
-                | ((byte_array[i] & 0x02) << 5)
-                | ((byte_array[i] & 0x04) << 3)
-                | ((byte_array[i] & 0x08) << 1)
-                | ((byte_array[i] & 0x10) >> 1)
-                | ((byte_array[i] & 0x20) >> 3)
-                | ((byte_array[i] & 0x40) >> 5)
-                | ((byte_array[i] & 0x80) >> 7)
-            )
+            data = file.read()
 
         # Write the reversed bytes to the output file
         with open(destination, "wb") as file:
-            file.write(byte_array)
+            file.write(data.translate(table))
 
-        print(f"Reversed {len(byte_array)} bytes and saved to {destination}")
+        print(f"Reversed {len(data)} bytes and saved to {destination}")
 
     except IOError as e:
         print(f"An error occurred: {e}")
